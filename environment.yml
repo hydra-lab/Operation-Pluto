@@ -1,0 +1,48 @@
+name: pluto
+channels:
+- conda-forge
+- defaults
+dependencies:
+- asn1crypto=0.22.0=py35_0
+- beautifulsoup4=4.6.0=py35_0
+- ca-certificates=2017.11.5=0
+- certifi=2017.11.5=py35_0
+- cffi=1.11.2=py35_0
+- chardet=3.0.4=py35_0
+- cryptography=2.1.4=py35_0
+- idna=2.6=py35_1
+- libiconv=1.14=vc14_4
+- libxml2=2.9.5=vc14_1
+- libxslt=1.1.32=vc14_0
+- luigi=2.7.1=py35_0
+- lxml=4.1.1=py35_0
+- openssl=1.0.2n=vc14_0
+- pandas=0.22.0=py35_0
+- pip=9.0.1=py35_1
+- pycparser=2.18=py35_0
+- pyopenssl=17.2.0=py35_0
+- pyparsing=2.2.0=py35_0
+- pysocks=1.6.8=py_0
+- python=3.5.4=3
+- python-dateutil=2.6.1=py35_0
+- pytz=2017.3=py_2
+- requests=2.18.4=py35_1
+- setuptools=38.4.0=py35_0
+- six=1.11.0=py35_1
+- sqlalchemy=1.1.13=py35_0
+- tornado=4.5.2=py35_0
+- urllib3=1.22=py35_0
+- vc=14=0
+- vs2015_runtime=14.0.25420=0
+- wheel=0.30.0=py35_2
+- wincertstore=0.2=py35_0
+- xlrd=1.1.0=py_2
+- zlib=1.2.11=vc14_0
+- icc_rt=2017.0.4=h97af966_0
+- intel-openmp=2018.0.0=hd92c6cd_8
+- mkl=2018.0.1=h2108138_4
+- numpy=1.13.3=py35hb7e80fb_0
+- pip:
+  - docutils==0.14
+  - lockfile==0.12.2
+  - python-daemon==2.1.2

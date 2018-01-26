@@ -1,0 +1,57 @@
+# Luigi Configuration File
+# Documentation http://luigi.readthedocs.io/en/stable/configuration.html
+
+[proxies]
+# https = https://username:password@hostname:port/
+# http = http://username:password@hostname:port/
+
+[core]
+log_level = WARNING
+logging_conf_file = log/luigi.log
+
+[worker]
+retry_external_tasks = true
+
+[scheduler]
+# record_task_history = True
+# state_path = log/luigi-state.pickle
+
+[task_history]
+# db_connection = sqlite://log/luigi-task-hist.db
+
+[email]
+receiver = recipient@domain.com
+sender = luigi-client@operation-pluto
+
+[mysql]
+username = username
+password = password
+hostname = localhost
+port = 3306
+database = dbname
+# marker-table = table_updates
+
+[retcode]
+# The following return codes are the recommended exit codes for Luigi
+# They are in increasing level of severity (for most applications)
+already_running = 10
+missing_data = 20
+not_run = 25
+task_failed = 30
+scheduling_error = 35
+unhandled_exception = 40
+
+# Task-level configuration
+
+[force]
+# Force luigi task re-run. Overwrite / delete data files.
+# Set forcable = False to disable all force overwrite / delete working in code
+# forcable = False
+
+[holidayapi]
+domain = https://holidayapi.com/v1/holidays
+# Test key
+# key = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+# Live key
+key = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+file_format = json
