@@ -3,7 +3,6 @@
 
 """ Pipeline Task Templates """
 
-import csv
 import os
 import time
 from random import uniform
@@ -197,7 +196,7 @@ class GenericTask(luigi.Task):
 		"""
 		Assign filename to `name` and override this method.
 		Or call `Task().filename(filename)` to reset filename and `path`.
-		
+
 		Define file name of output target. \n
 		Default to CSV for universal inter-working.
 		"""
@@ -343,6 +342,7 @@ class ExtractHttp(GenericTask):
 		""" Default to DAT for generic processing. """
 		return super().filename(custom=custom, default=default)
 
+	@classmethod
 	def _fix_url(self, domain, urlpath=None):
 		""" Repair URL from trivial typos. """
 		if urlpath is None:
@@ -364,6 +364,7 @@ class ExtractHttp(GenericTask):
 			self.url = self._fix_url(self.domain, self.urlpath)
 			return self.url
 
+	@classmethod
 	def __config_logger__(self, filename='log/http-request.log', level=logging.INFO, filemode='w'):
 		""" Configure HTTP extraction task log. """
 		httplogger = logging.getLogger("HttpLogger")
@@ -425,7 +426,7 @@ class ExtractHttp(GenericTask):
 		else:
 			return False
 
-		targets_exist = True 
+		targets_exist = True
 		identical_to_remote = True
 		outputs = luigi.task.flatten(self.output())
 		for output in outputs:

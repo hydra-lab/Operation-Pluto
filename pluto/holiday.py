@@ -43,7 +43,7 @@ class KickHolidayApiUS(MkDir):
 
 		merge = MergeCsv(**self.givedir, upstream=ListDirectory(**self.givedir))
 		yield Load(**self.givedir, upstream=merge)
-		
+
 		cwd = self.dirname.lstrip(os.sep)
 		root = cwd[:cwd.index(os.sep)] if os.sep in cwd else cwd
 		yield LoadHolidayApi(fullpath='{}/master-data/holiday/holiday-{}.csv'.format(root, self.workdir), upstream=merge, force=True)

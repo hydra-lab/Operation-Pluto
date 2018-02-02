@@ -7,7 +7,13 @@ import os
 from setuptools import setup
 
 NAME = 'Operation-Pluto'
-VERSION = "0.0.9"
+
+try:
+    import pluto.__version__
+    VERSION = pluto.__version__.__version__
+except ModuleNotFoundError as e:
+    VERSION = "1.0.0"
+
 DESCRIPTION = 'Grab and rinse financial and economic data.'
 URL = 'https://github.com/hydra-lab/Operation-Pluto'
 EMAIL = ''
@@ -21,13 +27,9 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 with io.open(os.path.join(HERE, 'README.rst'), encoding='utf-8') as f:
     LONG_DESCRIPTION = '\n' + f.read()
 
-ABOUT = {}
-with open(os.path.join(HERE, 'pluto', '__version__.py')) as f:
-    exec(f.read(), ABOUT)
-
 setup(
     name=NAME,
-    version=ABOUT['__version__'],
+    version=VERSION,
     author=AUTHOR,
     author_email='',
     description=DESCRIPTION,

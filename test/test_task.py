@@ -10,7 +10,7 @@ import pluto.task
 
 class TestMkDir(TestCase):
 	""" Tests for `MkDir()` """
-	
+
 	def setUp(self):
 		self.task = pluto.task.MkDir(dirname='test/data', workdir='workdir')
 
