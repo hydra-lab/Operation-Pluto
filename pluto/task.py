@@ -381,27 +381,27 @@ class ExtractHttp(GenericTask):
 		
 		:param endpoint: Full URL. Path `str`.
 		"""
-		httplogger = logging.getLogger("HttpLogger")
-		session = req.session()
 		time.sleep(uniform(0.164, 0.289))
-		session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36"})
-		
-		try:
-			response = session.get(endpoint, proxies={'https': proxies().https, 'http': proxies().http})
-		except req.exceptions.RequestException as e:
-			message = "{}:\n  endpoint: {}\n  status: {}".format(self.output().path, endpoint, "RequestException")
-			httplogger.debug(message)
-			print('{}: {}'.format(endpoint, e))
-			return None
-		else:
-			message = "{}:\n  endpoint: {}\n  status: {}".format(self.output().path, endpoint, response.status_code)
-			if response.status_code == 200:
-				# https://github.com/spotify/luigi/issues/1647
-				httplogger.info(message)
-				return response.content
-			else:
+
+		httplogger = logging.getLogger("HttpLogger")
+		with req.session() as session:
+			session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36"})
+			try:
+				response = session.get(endpoint, proxies={'https': proxies().https, 'http': proxies().http})
+			except req.exceptions.RequestException as e:
+				message = "{}:\n  endpoint: {}\n  status: {}".format(self.output().path, endpoint, "RequestException")
 				httplogger.debug(message)
+				print('{}: {}'.format(endpoint, e))
 				return None
+			else:
+				message = "{}:\n  endpoint: {}\n  status: {}".format(self.output().path, endpoint, response.status_code)
+				if response.status_code == 200:
+					# https://github.com/spotify/luigi/issues/1647
+					httplogger.info(message)
+					return response.content
+				else:
+					httplogger.debug(message)
+					return None
 
 	def requires(self):
 		""" Extraction task is on uppermost stream. """
