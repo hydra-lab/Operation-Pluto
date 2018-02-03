@@ -101,6 +101,27 @@ class TestExtractHttp(TestCase):
 			self.zerolocal.run()
 		self.assertTrue(os.stat(self.zerolocal.path).st_size > 0)
 
+	def test_logger(self):
+		pluto.task.ExtractHttp().__config_logger__(filename='test/log/http-request-test-logger.log', level=logging.DEBUG, filemode="w")
+		normal_extraction = pluto.task.ExtractHttp(url='https://archive.org/download/testmp3testfile/mpthreetest.mp3', fullpath='test/data/workdir/source/mpthreetest.mp3')
+		self.logger = normal_extraction
+		if not self.logger.complete():
+			self.logger.run()
+		fin = open('test/log/http-request-test-logger.log', 'r')
+		self.assertEqual(fin.readline(), 'test/data/workdir/source/mpthreetest.mp3:\n')
+		self.assertEqual(fin.readline(), '  endpoint: https://archive.org/download/testmp3testfile/mpthreetest.mp3\n')
+
+		fin.readline()
+
+		failing_extraction = pluto.task.ExtractHttp(url='https://archive.org/download/testmp3testfile/nonexist.mp3', fullpath='test/data/workdir/source/nonexist.mp3')
+		self.logger = failing_extraction
+		if not self.logger.complete():
+			self.logger.run()
+		self.assertEqual(fin.readline(), 'test/data/workdir/source/nonexist.mp3:\n')
+		self.assertEqual(fin.readline(), '  endpoint: https://archive.org/download/testmp3testfile/nonexist.mp3\n')
+
+		fin.close()
+
 
 class TestListDirectory(TestCase):
 	""" Tests for `ListDirectory()` """
