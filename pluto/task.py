@@ -189,7 +189,8 @@ class GenericTask(luigi.Task):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		# https://groups.google.com/forum/#!topic/luigi-user/vO0Ubtb3TBY
-		self._run = False
+		self._done = False
+		self._checked = 0
 		self.force = self.force if force().forcable else False
 
 	def filename(self, custom=None, default='data{}.csv'.format('')):
@@ -241,7 +242,7 @@ class GenericTask(luigi.Task):
 		# https://github.com/spotify/luigi/issues/595
 		"""
 		DEPRECATED. If Luigi config enables delete, force delete output targets.
-		 """
+		"""
 		if self.force:
 			outputs = luigi.task.flatten(self.output())
 			for out in outputs:
@@ -267,12 +268,12 @@ class GenericTask(luigi.Task):
 		if not target_implemented:
 			warnings.warn("Task %r without outputs has no custom complete() method" % self, stacklevel=2)
 			return False
-		
+
 		targets_nonzero = all(map(lambda output: output.exists() and (os.stat(output.path).st_size > 0), outputs))
 		if not targets_nonzero:
 			return False
 
-		if self._run:
+		if self._done:
 			return True
 
 		PRESERVED_FILE = not self.force
@@ -283,7 +284,7 @@ class GenericTask(luigi.Task):
 	def run(self):
 		""" Record task run state. """
 		self.output().makedirs()
-		self._run = True
+		self._done = True
 
 
 class MkDir(GenericWrapperTask):
@@ -414,19 +415,16 @@ class ExtractHttp(GenericTask):
 		Otherwise, return `False`.
 		"""
 		generic_conditions = super().complete()
-		
-		# BUG : HTTP requests get logged twice. Exceptions aren't logged.
 
-		if self._run:
-			__remote = self._buffer
-		else:
-			__remote = self._get_response(self.endpoint())
-		
-		remote_nonzero = __remote is not None
-		self._buffer = __remote if remote_nonzero else None
+		if not self._checked:
+			self._remote_buffer = self._get_response(self.endpoint())
 
+		# FIXME : Luigi workers evaluate complete() multiple times.
+		self._checked = self._checked + 1
+
+		remote_nonzero = self._remote_buffer is not None
 		if remote_nonzero:
-			remote_digest = chunk_hash(__remote, hashlib.md5())
+			remote_digest = chunk_hash(self._remote_buffer, hashlib.md5())
 		else:
 			return False
 
@@ -441,15 +439,14 @@ class ExtractHttp(GenericTask):
 			else:
 				targets_exist = False
 
-		return self._run or generic_conditions and remote_nonzero and targets_exist and identical_to_remote
-
+		return self._done or generic_conditions and remote_nonzero and targets_exist and identical_to_remote
 
 	def run(self):
 		""" Commit buffer to local path. """
 		super().run()
-		if isinstance(self._buffer, bytes):
+		if isinstance(self._remote_buffer, bytes):
 			with open(self.output().path, 'wb') as fout:
-				fout.write(self._buffer)
+				fout.write(self._remote_buffer)
 
 
 class ListDirectory(GenericExternalTask):
