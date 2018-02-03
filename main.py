@@ -21,8 +21,8 @@ class RunAll(pluto.task.MkDir):
 	def __init__(self, *args, **kwargs):
 		# Set-up logging
 		super().__init__(*args, **kwargs)
-		logging.basicConfig(filename='log/luigi.log', level=logging.DEBUG, filemode="w")
 		pluto.task.ExtractHttp().__config_logger__(filename='log/http-request.log', level=logging.INFO, filemode="w")
+		logging.basicConfig(filename='log/luigi.log', level=logging.DEBUG, filemode="w")
 
 	def requires(self):
 		# Curate data sources.
@@ -44,8 +44,8 @@ class RunDaily(pluto.task.MkDir):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		logging.basicConfig(filename='log/luigi.log', level=logging.DEBUG, filemode="w")
 		pluto.task.ExtractHttp().__config_logger__(filename='log/http-request.log', level=logging.INFO, filemode="w")
+		logging.basicConfig(filename='log/luigi.log', level=logging.DEBUG, filemode="w")
 
 	def requires(self):
 		yield pluto.fed.KickFed(**self.givedir)
@@ -63,8 +63,8 @@ class RunWeekly(pluto.task.MkDir):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		logging.basicConfig(filename='log/luigi.log', level=logging.DEBUG, filemode="w")
 		pluto.task.ExtractHttp().__config_logger__(filename='log/http-request.log', level=logging.INFO, filemode="w")
+		logging.basicConfig(filename='log/luigi.log', level=logging.DEBUG, filemode="w")
 
 	def requires(self):
 		yield pluto.bls.KickBls(**self.givedir)
@@ -78,8 +78,8 @@ class RunMock(pluto.task.MkDir):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		logging.basicConfig(filename='test/log/luigi.log', level=logging.DEBUG, filemode="w")
 		pluto.task.ExtractHttp().__config_logger__(filename='test/log/http-request.log', level=logging.DEBUG, filemode="w")
+		logging.basicConfig(filename='test/log/luigi.log', level=logging.DEBUG, filemode="w")
 
 	def requires(self):
 		yield pluto.censtatd.KickCenstatd(**self.givedir)

@@ -367,6 +367,10 @@ class ExtractHttp(GenericTask):
 	@classmethod
 	def __config_logger__(self, filename='log/http-request.log', level=logging.INFO, filemode='w'):
 		""" Configure HTTP extraction task log. """
+		try:
+			os.makedirs(os.path.dirname(filename), exist_ok=True)
+		except OSError as e:
+			pass
 		httplogger = logging.getLogger("HttpLogger")
 		httplogger.addHandler(logging.FileHandler(filename, mode=filemode))
 		httplogger.setLevel(level)
