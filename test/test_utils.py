@@ -23,7 +23,7 @@ class TestDate(TestCase):
 
 class TestNormalizer(TestCase):
 	""" Tests for `Normalizer()` """
-	
+
 	def setUp(self):
 		self.converter = pluto.utils.Normalizer()
 

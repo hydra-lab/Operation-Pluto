@@ -4,23 +4,26 @@
 """ Tests for task module """
 
 import os
+import logging
 from unittest import TestCase
 import pluto.task
+
+SEP = os.sep
 
 
 class TestMkDir(TestCase):
 	""" Tests for `MkDir()` """
-	
+
 	def setUp(self):
 		self.task = pluto.task.MkDir(dirname='test/data', workdir='workdir')
 
 	def test_default_path(self):
-		self.assertEqual(self.task.path, 'test\\data\\workdir')
-		self.assertEqual(self.task.givedir, {'dirname': 'test\\data\\workdir'})
+		self.assertEqual(self.task.path, 'test{0}data{0}workdir'.format(SEP))
+		self.assertEqual(self.task.givedir, {'dirname': 'test{0}data{0}workdir'.format(SEP)})
 
 	def test_fullpath(self):
 		self.fullpath = pluto.task.MkDir(dirname='test/data', workdir='workdir', fullpath='test/data/fullpath')
-		self.assertEqual(self.fullpath.path, 'test\\data\\fullpath')
+		self.assertEqual(self.fullpath.path, 'test{0}data{0}fullpath'.format(SEP))
 
 	def test_mkdir(self):
 		self.task.run()
@@ -34,20 +37,20 @@ class TestGenericTask(TestCase):
 		open('test/data/workdir/staging/data.csv', 'w+').close()
 		self.default = pluto.task.GenericTask(dirname='test/data/workdir', workdir='staging')
 		self.assertEqual(self.default.filename(), 'data.csv')
-		self.assertEqual(self.default.path, 'test\\data\\workdir\\staging\\data.csv')
-		self.assertEqual(self.default.output().path, 'test\\data\\workdir\\staging\\data.csv')
+		self.assertEqual(self.default.path, 'test{0}data{0}workdir{0}staging{0}data.csv'.format(SEP))
+		self.assertEqual(self.default.output().path, 'test{0}data{0}workdir{0}staging{0}data.csv'.format(SEP))
 		self.assertTrue(os.path.exists('test/data/workdir/staging/data.csv'))
 		
 	def test_change_filename(self):
 		self.change = pluto.task.GenericTask(dirname='test/data/workdir-chg', workdir='staging')
 		self.change.filename('data.gz')
 		self.assertEqual(self.change.filename(), 'data.gz')
-		self.assertEqual(self.change.path, 'test\\data\\workdir-chg\\staging\\data.gz')
-		self.assertEqual(self.change.output().path, 'test\\data\\workdir-chg\\staging\\data.gz')
+		self.assertEqual(self.change.path, 'test{0}data{0}workdir-chg{0}staging{0}data.gz'.format(SEP))
+		self.assertEqual(self.change.output().path, 'test{0}data{0}workdir-chg{0}staging{0}data.gz'.format(SEP))
 
 	def test_fullpath(self):
 		self.fullpath = pluto.task.GenericTask(dirname='test', workdir='workdir', fullpath='test/data/fullpath/source/data.gz')
-		self.assertEqual(self.fullpath.path, 'test\\data\\fullpath\\source\\data.gz')
+		self.assertEqual(self.fullpath.path, 'test{0}data{0}fullpath{0}source{0}data.gz'.format(SEP))
 
 
 class TestExtractHttp(TestCase):
@@ -56,10 +59,10 @@ class TestExtractHttp(TestCase):
 	def setUp(self):
 		os.makedirs('test/data/workdir/source', exist_ok=True)
 		open('test/data/workdir/source/nonexist.dat', 'w+').close()
-		self.dl = pluto.task.ExtractHttp(url='http://speedtest.ftp.otenet.gr/files/test100k.db', fullpath='test/data/workdir/source/test100k.db')
-		self.dl.complete()
-		if not self.dl.complete():
-			self.dl.run()
+		self.task = pluto.task.ExtractHttp(url='http://speedtest.ftp.otenet.gr/files/test100k.db', fullpath='test/data/workdir/source/test100k.db')
+		self.task.complete()
+		if not self.task.complete():
+			self.task.run()
 		os.makedirs('test/data/workdir/overwrite', exist_ok=True)
 
 	def test_fixurl(self):
@@ -80,8 +83,9 @@ class TestExtractHttp(TestCase):
 		self.nonexist_remote = pluto.task.ExtractHttp(url='nonexistentdomain', fullpath='test/data/workdir/source/test100k.db')
 		self.assertFalse(self.nonexist_remote.complete())
 
-	def test_zero_remote_non_overwrite(self):
-		self.zeroremote = pluto.task.ExtractHttp(url='http://speedtest.ftp.otenet.gr/files/test100k.db', fullpath='test/data/workdir/overwrite/test100k.db')
+	def test_overwrite(self):
+		# Do not overwrite when remote is null
+		self.zeroremote = pluto.task.ExtractHttp(url='http://speedtest.ftp.otenEet.gr/files/test100k.db', fullpath='test/data/workdir/overwrite/test100k.db')
 		if not self.zeroremote.complete():
 			self.zeroremote.run()
 		self.assertTrue(os.stat(self.zeroremote.path).st_size > 0)
@@ -90,12 +94,33 @@ class TestExtractHttp(TestCase):
 			self.zeroremote.run()
 		self.assertTrue(os.stat(self.zeroremote.path).st_size > 0)
 
-	def test_overwrite_zero_local(self):
+		# Overwrite when destination is null
 		open('test/data/workdir/overwrite/test100k.db', 'w+').close()
 		self.zerolocal = pluto.task.ExtractHttp(url='http://speedtest.ftp.otenet.gr/files/test100k.db', fullpath='test/data/workdir/overwrite/test100k.db')
 		if not self.zerolocal.complete():
 			self.zerolocal.run()
 		self.assertTrue(os.stat(self.zerolocal.path).st_size > 0)
+
+	def test_logger(self):
+		pluto.task.ExtractHttp().__config_logger__(filename='test/log/http-request-test-logger.log', level=logging.DEBUG, filemode="w")
+		normal_extraction = pluto.task.ExtractHttp(url='https://archive.org/download/testmp3testfile/mpthreetest.mp3', fullpath='test/data/workdir/source/mpthreetest.mp3')
+		self.logger = normal_extraction
+		if not self.logger.complete():
+			self.logger.run()
+		fin = open('test/log/http-request-test-logger.log', 'r')
+		self.assertEqual(fin.readline(), 'test/data/workdir/source/mpthreetest.mp3:\n')
+		self.assertEqual(fin.readline(), '  endpoint: https://archive.org/download/testmp3testfile/mpthreetest.mp3\n')
+
+		fin.readline()
+
+		failing_extraction = pluto.task.ExtractHttp(url='https://archive.org/download/testmp3testfile/nonexist.mp3', fullpath='test/data/workdir/source/nonexist.mp3')
+		self.logger = failing_extraction
+		if not self.logger.complete():
+			self.logger.run()
+		self.assertEqual(fin.readline(), 'test/data/workdir/source/nonexist.mp3:\n')
+		self.assertEqual(fin.readline(), '  endpoint: https://archive.org/download/testmp3testfile/nonexist.mp3\n')
+
+		fin.close()
 
 
 class TestListDirectory(TestCase):
@@ -103,13 +128,13 @@ class TestListDirectory(TestCase):
 
 	def test_default_path(self):
 		self.default = pluto.task.ListDirectory(dirname='test/data/workdir')
-		self.assertEqual(self.default.path, 'test\\data\\workdir\\map')
+		self.assertEqual(self.default.path, 'test{0}data{0}workdir{0}map'.format(SEP))
 		for target in self.default.output():
-			self.assertEqual(os.path.dirname(target.path), 'test\\data\\workdir\\map')
+			self.assertEqual(os.path.dirname(target.path), 'test{0}data{0}workdir{0}map'.format(SEP))
 
 	def test_fullpath(self):
 		self.fullpath = pluto.task.ListDirectory(fullpath='test/data/workdir/source')
-		self.assertEqual(self.fullpath.path, 'test\\data\\workdir\\source')
+		self.assertEqual(self.fullpath.path, 'test{0}data{0}workdir{0}source'.format(SEP))
 
 
 class TestListFile(TestCase):
@@ -118,21 +143,21 @@ class TestListFile(TestCase):
 	def test_default_filename(self):
 		self.default = pluto.task.ListFile(dirname='test/data/workdir')
 		self.assertEqual(self.default.filename(), 'data.csv')
-		self.assertEqual(self.default.path, 'test\\data\\workdir\\map\\data.csv')
-		self.assertEqual(self.default.output().path, 'test\\data\\workdir\\map\\data.csv')
+		self.assertEqual(self.default.path, 'test{0}data{0}workdir{0}map{0}data.csv'.format(SEP))
+		self.assertEqual(self.default.output().path, 'test{0}data{0}workdir{0}map{0}data.csv'.format(SEP))
 	
 	def test_fullpath(self):
 		self.fullpath = pluto.task.ListFile(fullpath='test/data/workdir/map/data.dat')
-		self.assertEqual(self.fullpath.path, 'test\\data\\workdir\\map\\data.dat')
+		self.assertEqual(self.fullpath.path, 'test{0}data{0}workdir{0}map{0}data.dat'.format(SEP))
 		self.fullpath.filename('data.gz')
-		self.assertEqual(self.fullpath.path, 'test\\data\\workdir\\map\\data.dat')
+		self.assertEqual(self.fullpath.path, 'test{0}data{0}workdir{0}map{0}data.dat'.format(SEP))
 
 	def test_change_filename(self):
 		self.change = pluto.task.ListFile(dirname='test/data/workdir-chg', workdir='staging')
 		self.change.filename('data.gz')
 		self.assertEqual(self.change.filename(), 'data.gz')
-		self.assertEqual(self.change.path, 'test\\data\\workdir-chg\\staging\\data.gz')
-		self.assertEqual(self.change.output().path, 'test\\data\\workdir-chg\\staging\\data.gz')
+		self.assertEqual(self.change.path, 'test{0}data{0}workdir-chg{0}staging{0}data.gz'.format(SEP))
+		self.assertEqual(self.change.output().path, 'test{0}data{0}workdir-chg{0}staging{0}data.gz'.format(SEP))
 
 
 class MergeCsv(TestCase):

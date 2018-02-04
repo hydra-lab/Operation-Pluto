@@ -7,7 +7,7 @@
 
 [core]
 log_level = WARNING
-logging_conf_file = log/luigi.log
+# logging_conf_file = log/luigi.log
 
 [worker]
 retry_external_tasks = true

@@ -61,6 +61,7 @@ class Date(object):
 		start = (self.date_elapsed + pd.DateOffset(months)).replace(day=1)
 		return pd.date_range(start=start, end=self.date_elapsed, freq='B').date
 
+	@classmethod
 	def hk_holidays(self):
 		try:
 			df = pd.read_csv('data/master-data/holiday/holiday-hk.csv', parse_dates=['date'])
@@ -135,7 +136,7 @@ class Normalizer(object):
 def chunk_hash(bytestream, hash_function, chunk_size=2**20):
 	"""
 	`io.read()` and hash in chunks to avoid heavy RAM use.
-	
+
 	Return hexdigest. Raise on `TypeError`.
 	"""
 	try:

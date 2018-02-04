@@ -27,7 +27,7 @@ class KickHkgbDaily(MkDir):
 		extract = ExtractHkgb(**self.givedir, urlpath='/en/others/documents/DailyClosings.xls')
 		parse = ParseHkgbDaily(**self.givedir, date=self.date, upstream=extract, force=True)
 		yield parse
-	
+
 		merge = MergeCsv(**self.givedir, upstream=ListDirectory(**self.givedir))
 		yield Load(**self.givedir, upstream=merge)
 
