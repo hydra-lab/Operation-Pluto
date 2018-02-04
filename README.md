@@ -1,5 +1,7 @@
 # Operation Pluto
 
+[![PyPI version](https://badge.fury.io/py/Operation-Pluto.svg)](https://pypi.python.org/pypi/Operation-Pluto) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/ae24c1a0b93a45bb972c40af136a01b2)](https://www.codacy.com/app/tc-ying/Operation-Pluto-upstream?utm_source=github.com&utm_medium=referral&utm_content=hydra-lab/Operation-Pluto&utm_campaign=Badge_Coverage)
+
 ![data-pipeline](https://github.com/hydra-lab/Operation-Pluto/blob/master/docs/data-pipeline-teaser.png)
 
 [Operation Pluto](https://en.wikipedia.org/wiki/Operation_Pluto) is a pipeline set-up. It plumbs financial and economic data. Focused markets are *Hong Kong*, *U.S.* and *China*.
@@ -35,6 +37,8 @@ Currently connected data sources :
 
 ---
 #### *Pool streams into lake. Share data sources.*
+
+###### [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/hydra-lab/Operation-Pluto/issues)
 ---
 
 ## Pipeline Organization
