@@ -22,6 +22,7 @@ schedule/*
 *.py[cod]
 
 # Distribution / packaging
+/README.rst
 .Python
 build/
 develop-eggs/

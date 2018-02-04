@@ -44,4 +44,6 @@ setup(
     ],
     packages=['pluto', 'test'],
     install_requires=REQUIRED,
+    python_requires='>=3.5',
+    zip_safe=False
 )
