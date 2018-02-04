@@ -3,4 +3,3 @@
 
 # Declare files that will always have CRLF line endings on checkout.
 *.csv text eol=crlf
-*.sql text eol=crlf

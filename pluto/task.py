@@ -3,7 +3,6 @@
 
 """ Pipeline Task Templates """
 
-import csv
 import os
 import time
 from random import uniform
@@ -190,14 +189,15 @@ class GenericTask(luigi.Task):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		# https://groups.google.com/forum/#!topic/luigi-user/vO0Ubtb3TBY
-		self._run = False
+		self._done = False
+		self._checked = 0
 		self.force = self.force if force().forcable else False
 
 	def filename(self, custom=None, default='data{}.csv'.format('')):
 		"""
 		Assign filename to `name` and override this method.
 		Or call `Task().filename(filename)` to reset filename and `path`.
-		
+
 		Define file name of output target. \n
 		Default to CSV for universal inter-working.
 		"""
@@ -242,7 +242,7 @@ class GenericTask(luigi.Task):
 		# https://github.com/spotify/luigi/issues/595
 		"""
 		DEPRECATED. If Luigi config enables delete, force delete output targets.
-		 """
+		"""
 		if self.force:
 			outputs = luigi.task.flatten(self.output())
 			for out in outputs:
@@ -268,12 +268,12 @@ class GenericTask(luigi.Task):
 		if not target_implemented:
 			warnings.warn("Task %r without outputs has no custom complete() method" % self, stacklevel=2)
 			return False
-		
+
 		targets_nonzero = all(map(lambda output: output.exists() and (os.stat(output.path).st_size > 0), outputs))
 		if not targets_nonzero:
 			return False
 
-		if self._run:
+		if self._done:
 			return True
 
 		PRESERVED_FILE = not self.force
@@ -284,7 +284,7 @@ class GenericTask(luigi.Task):
 	def run(self):
 		""" Record task run state. """
 		self.output().makedirs()
-		self._run = True
+		self._done = True
 
 
 class MkDir(GenericWrapperTask):
@@ -343,6 +343,7 @@ class ExtractHttp(GenericTask):
 		""" Default to DAT for generic processing. """
 		return super().filename(custom=custom, default=default)
 
+	@classmethod
 	def _fix_url(self, domain, urlpath=None):
 		""" Repair URL from trivial typos. """
 		if urlpath is None:
@@ -364,8 +365,13 @@ class ExtractHttp(GenericTask):
 			self.url = self._fix_url(self.domain, self.urlpath)
 			return self.url
 
+	@classmethod
 	def __config_logger__(self, filename='log/http-request.log', level=logging.INFO, filemode='w'):
 		""" Configure HTTP extraction task log. """
+		try:
+			os.makedirs(os.path.dirname(filename), exist_ok=True)
+		except OSError as e:
+			pass
 		httplogger = logging.getLogger("HttpLogger")
 		httplogger.addHandler(logging.FileHandler(filename, mode=filemode))
 		httplogger.setLevel(level)
@@ -376,27 +382,27 @@ class ExtractHttp(GenericTask):
 		
 		:param endpoint: Full URL. Path `str`.
 		"""
-		httplogger = logging.getLogger("HttpLogger")
-		session = req.session()
 		time.sleep(uniform(0.164, 0.289))
-		session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36"})
-		
-		try:
-			response = session.get(endpoint, proxies={'https': proxies().https, 'http': proxies().http})
-		except req.exceptions.RequestException as e:
-			message = "{}:\n  endpoint: {}\n  status: {}".format(self.output().path, endpoint, "RequestException")
-			httplogger.debug(message)
-			print('{}: {}'.format(endpoint, e))
-			return None
-		else:
-			message = "{}:\n  endpoint: {}\n  status: {}".format(self.output().path, endpoint, response.status_code)
-			if response.status_code == 200:
-				# https://github.com/spotify/luigi/issues/1647
-				httplogger.info(message)
-				return response.content
-			else:
+
+		httplogger = logging.getLogger("HttpLogger")
+		with req.session() as session:
+			session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36"})
+			try:
+				response = session.get(endpoint, proxies={'https': proxies().https, 'http': proxies().http})
+			except req.exceptions.RequestException as e:
+				message = "{}:\n  endpoint: {}\n  status: {}".format(self.output().path, endpoint, "RequestException")
 				httplogger.debug(message)
+				print('{}: {}'.format(endpoint, e))
 				return None
+			else:
+				message = "{}:\n  endpoint: {}\n  status: {}".format(self.output().path, endpoint, response.status_code)
+				if response.status_code == 200:
+					# https://github.com/spotify/luigi/issues/1647
+					httplogger.info(message)
+					return response.content
+				else:
+					httplogger.debug(message)
+					return None
 
 	def requires(self):
 		""" Extraction task is on uppermost stream. """
@@ -409,23 +415,20 @@ class ExtractHttp(GenericTask):
 		Otherwise, return `False`.
 		"""
 		generic_conditions = super().complete()
-		
-		# BUG : HTTP requests get logged twice. Exceptions aren't logged.
 
-		if self._run:
-			__remote = self._buffer
-		else:
-			__remote = self._get_response(self.endpoint())
-		
-		remote_nonzero = __remote is not None
-		self._buffer = __remote if remote_nonzero else None
+		if not self._checked:
+			self._remote_buffer = self._get_response(self.endpoint())
 
+		# FIXME : Luigi workers evaluate complete() multiple times.
+		self._checked = self._checked + 1
+
+		remote_nonzero = self._remote_buffer is not None
 		if remote_nonzero:
-			remote_digest = chunk_hash(__remote, hashlib.md5())
+			remote_digest = chunk_hash(self._remote_buffer, hashlib.md5())
 		else:
 			return False
 
-		targets_exist = True 
+		targets_exist = True
 		identical_to_remote = True
 		outputs = luigi.task.flatten(self.output())
 		for output in outputs:
@@ -436,15 +439,14 @@ class ExtractHttp(GenericTask):
 			else:
 				targets_exist = False
 
-		return self._run or generic_conditions and remote_nonzero and targets_exist and identical_to_remote
-
+		return self._done or generic_conditions and remote_nonzero and targets_exist and identical_to_remote
 
 	def run(self):
 		""" Commit buffer to local path. """
 		super().run()
-		if isinstance(self._buffer, bytes):
+		if isinstance(self._remote_buffer, bytes):
 			with open(self.output().path, 'wb') as fout:
-				fout.write(self._buffer)
+				fout.write(self._remote_buffer)
 
 
 class ListDirectory(GenericExternalTask):

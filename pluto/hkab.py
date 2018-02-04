@@ -69,7 +69,7 @@ class ParseHkabHibor(Parse):
            '10 Months': '10_month_hibor',
            '11 Months': '11_month_hibor',
            '12 Months': '12_month_hibor'}
-	
+
 	def filename(self, custom=None, default='data{}.csv'.format('')):
 		default = 'data{}.csv'.format(self.date.strftime("-%Y-%m-%d"))
 		return super().filename(custom=custom, default=default)
