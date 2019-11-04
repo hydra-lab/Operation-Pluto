@@ -1,4 +1,4 @@
-luigi==2.7.1
+luigi==2.8.0
 python-daemon==2.1.2
 requests==2.13.0
 pandas==0.22.0
