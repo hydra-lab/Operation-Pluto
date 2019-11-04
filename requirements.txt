@@ -1,6 +1,6 @@
 luigi==2.7.1
 python-daemon==2.1.2
-requests==2.13.0
+requests==2.20.0
 pandas==0.22.0
 beautifulsoup4==4.6.0
 lxml==4.1.1
