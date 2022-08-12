@@ -1,6 +1,16 @@
+# DEPRECATED
+
+This data pipeline was developed for Hong Kong investor in the first place.
+
+Since then, Hong Kong's open financial data remains lacking. APIs are unstable. Data from Mainland China has not become more available.
+
+The status of Hong Kong has also been in decline. For good reason, [U.S. blocked Hong Kong IPs from BLS](https://www.ft.com/content/05a05cb9-b0e2-4c4a-85ed-3126c83d5f9b). More retail investors in Hong Kong are moving to U.S. market.
+
+And we look to [OpenBB Terminal](https://github.com/OpenBB-finance/OpenBBTerminal) for liberalization of data in the global market.
+
 # Operation Pluto
 
-[![PyPI version](https://badge.fury.io/py/Operation-Pluto.svg)](https://pypi.python.org/pypi/Operation-Pluto) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/ae24c1a0b93a45bb972c40af136a01b2)](https://www.codacy.com/app/tc-ying/Operation-Pluto-upstream?utm_source=github.com&utm_medium=referral&utm_content=hydra-lab/Operation-Pluto&utm_campaign=Badge_Coverage)
+[![PyPI version](https://badge.fury.io/py/Operation-Pluto.svg)](https://pypi.python.org/pypi/Operation-Pluto) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/91e24db1fece48dfaa012e6acd79ca84)](https://www.codacy.com/gh/hydra-lab/Operation-Pluto/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hydra-lab/Operation-Pluto&amp;utm_campaign=Badge_Grade)
 
 ![data-pipeline](https://github.com/hydra-lab/Operation-Pluto/blob/master/docs/data-pipeline-teaser.png)
 
